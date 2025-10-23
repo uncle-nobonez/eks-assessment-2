@@ -49,6 +49,30 @@ jobs:
         echo "Streaming service status (will timeout after 300s)..."
         timeout 300 kubectl get svc ui -w || echo "kubectl get svc ui -w timed out or exited"
 
+    - name: Show UI Service and public URL
+      run: |
+        echo "--- ui Service YAML ---"
+        kubectl get svc ui -n default -o yaml || kubectl get svc ui -o yaml || true
+
+        echo "--- Extracting external hostname/IP ---"
+        LB_HOST=$(kubectl get svc ui -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)
+        if [ -z "$LB_HOST" ]; then
+          LB_HOST=$(kubectl get svc ui -n default -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)
+        fi
+
+        if [ -z "$LB_HOST" ]; then
+          echo "No external hostname/IP found for service 'ui' yet. Check the Load Balancer controller or cloud provider."
+          exit 0
+        fi
+
+        echo "UI should be available at: http://$LB_HOST"
+        echo "Probing the URL (timeout 10s)"
+        if curl -sS --max-time 10 "http://$LB_HOST" >/dev/null; then
+          echo "HTTP probe succeeded for http://$LB_HOST"
+        else
+          echo "HTTP probe failed or timed out for http://$LB_HOST (the ALB may still be provisioning)."
+        fi
+
     - name: Get Application Status
       run: |
         echo "=== Pods Status ==="
