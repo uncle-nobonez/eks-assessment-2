@@ -41,7 +41,7 @@ jobs:
         terraform init -backend-config="bucket=my-terraform-state-bucket-steven-eks" \
                         -backend-config="key=global/s3/terraform.tfstate" \
                         -backend-config="region=${{ env.AWS_REGION }}" \
-                        -backend-config="dynamodb_table=terraform-lock-table" \
+                        -backend-config="dynamodb_table=terraform-lock" \
                         -backend-config="encrypt=true"
 
     - name: Terraform Plan
@@ -76,7 +76,7 @@ jobs:
         terraform init -backend-config="bucket=my-terraform-state-bucket-steven-eks" \
                         -backend-config="key=global/s3/terraform.tfstate" \
                         -backend-config="region=${{ env.AWS_REGION }}" \
-                        -backend-config="dynamodb_table=terraform-lock-table" \
+                        -backend-config="dynamodb_table=terraform-lock" \
                         -backend-config="encrypt=true"
 
     - name: Handle Existing Resources

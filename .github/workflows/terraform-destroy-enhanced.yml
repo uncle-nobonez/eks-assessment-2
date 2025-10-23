@@ -90,7 +90,7 @@ jobs:
         terraform init -backend-config="bucket=my-terraform-state-bucket-steven-eks" \
                         -backend-config="key=global/s3/terraform.tfstate" \
                         -backend-config="region=${{ env.AWS_REGION }}" \
-                        -backend-config="dynamodb_table=terraform-lock-table" \
+                        -backend-config="dynamodb_table=terraform-lock" \
                         -backend-config="encrypt=true"
 
     - name: Clean up IAM User Dependencies
@@ -117,5 +117,5 @@ jobs:
         echo "Cleaning up backend resources..."
         aws s3 rm s3://my-terraform-state-bucket-steven-eks --recursive || true
         aws s3 rb s3://my-terraform-state-bucket-steven-eks || true
-        aws dynamodb delete-table --table-name terraform-lock-table --region ${{ env.AWS_REGION }} || true
+        aws dynamodb delete-table --table-name terraform-lock --region ${{ env.AWS_REGION }} || true
         echo "Backend cleanup completed"

@@ -9,7 +9,3 @@ terraform {
 }
 
 
-#git commit -m "first commit"
-#git branch -M main
-#git remote add origin git@github.com:Steve4423/my-eks-assessment2.git
-#git push -u origin main
