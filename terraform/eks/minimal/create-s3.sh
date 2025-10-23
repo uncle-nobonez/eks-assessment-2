@@ -5,13 +5,12 @@ REGION="us-east-1"
 BUCKET_NAME="my-terraform-state-bucket-steven-eks" # Must be globally unique
 DDB_TABLE_NAME="terraform-lock-table"
 
-echo "Creating S3 bucket: $BUCKET_NAME in region: $REGION"
+echo "🚀 Creating S3 bucket: $BUCKET_NAME in region: $REGION"
 
 # ===== CREATE S3 BUCKET =====
 aws s3api create-bucket \
   --bucket "$BUCKET_NAME" \
-  --region "$REGION" 
-  # --create-bucket-configuration LocationConstraint="$REGION"
+  --region "$REGION" || echo "⚠️ Bucket may already exist, skipping creation"
 
 # ===== ENABLE VERSIONING =====
 aws s3api put-bucket-versioning \
@@ -29,19 +28,19 @@ aws s3api put-bucket-encryption \
     }]
   }'
 
-echo "S3 bucket created and configured."
+echo "✅ S3 bucket created and configured."
 
 # ===== CREATE DYNAMODB TABLE =====
-echo "Creating DynamoDB table: $DDB_TABLE_NAME"
+echo "🚀 Creating DynamoDB table: $DDB_TABLE_NAME"
 
 aws dynamodb create-table \
   --table-name "$DDB_TABLE_NAME" \
   --attribute-definitions AttributeName=LockID,AttributeType=S \
   --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAYPERREQUEST \
-  --region "$REGION"
+  --billing-mode PAY_PER_REQUEST \
+  --region "$REGION" || echo "⚠️ Table may already exist, skipping creation"
 
-echo "DynamoDB table created."
+echo "✅ DynamoDB table ready."
 
 # ===== OUTPUT CONFIG FOR TERRAFORM BACKEND =====
 echo
