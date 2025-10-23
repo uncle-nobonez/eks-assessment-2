@@ -92,6 +92,25 @@ jobs:
         terraform import aws_kms_alias.eks_cluster alias/eks/retail-store 2>/dev/null || echo "KMS alias not found or already imported"
         terraform import aws_cloudwatch_log_group.eks_cluster /aws/eks/retail-store/cluster 2>/dev/null || echo "Log group not found or already imported"
         
+
+        echo "Checking for existing resources..."
+
+        # Import existing IAM roles
+        terraform import module.retail_app_eks.module.iam_assumable_role_adot_amp.aws_iam_role.this[0] retail-store-adot-col-xray 2>/dev/null || echo "ADOT XRay role not found or already imported"
+        terraform import module.retail_app_eks.module.iam_assumable_role_adot_logs.aws_iam_role.this[0] retail-store-adot-col-logs 2>/dev/null || echo "ADOT Logs role not found or already imported"
+
+        # Import IAM user and policy
+        terraform import aws_iam_user.eks_readonly_dev retail-store-eks-readonly-dev 2>/dev/null || echo "IAM user already exists or not found"
+        terraform import aws_iam_policy.eks_readonly arn:aws:iam::${AWS_ACCOUNT_ID}:policy/retail-store-eks-readonly 2>/dev/null || echo "IAM policy already exists or not found"
+
+        # Import KMS and log group
+        terraform import aws_kms_alias.eks_cluster alias/eks/retail-store 2>/dev/null || echo "KMS alias not found or already imported"
+        terraform import aws_cloudwatch_log_group.eks_cluster /aws/eks/retail-store/cluster 2>/dev/null || echo "Log group not found or already imported"
+
+        echo "Resource import check completed"
+
+
+
         echo "Resource check completed"
 
     - name: Terraform Apply
