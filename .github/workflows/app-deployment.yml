@@ -42,6 +42,13 @@ jobs:
         
         echo "Application deployed successfully!"
 
+    - name: Annotate UI Service and watch
+      run: |
+        echo "Annotating service 'ui' to be internet-facing ALB..."
+        kubectl annotate service ui service.beta.kubernetes.io/aws-load-balancer-scheme=internet-facing --overwrite || true
+        echo "Streaming service status (will timeout after 300s)..."
+        timeout 300 kubectl get svc ui -w || echo "kubectl get svc ui -w timed out or exited"
+
     - name: Get Application Status
       run: |
         echo "=== Pods Status ==="
