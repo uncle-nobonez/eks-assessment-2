@@ -87,10 +87,10 @@ jobs:
     - name: Terraform Init
       working-directory: terraform/eks/minimal
       run: |
-        terraform init -backend-config="bucket=my-terraform-state-bucket-steven-eks" \
-                        -backend-config="key=global/s3/terraform.tfstate" \
+        terraform init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+                        -backend-config="key=${{ secrets.TF_STATE_KEY }}" \
                         -backend-config="region=${{ env.AWS_REGION }}" \
-                        -backend-config="dynamodb_table=terraform-lock" \
+                        -backend-config="dynamodb_table=${{ secrets.TF_DYNAMODB_TABLE }}" \
                         -backend-config="encrypt=true"
 
     - name: Clean up IAM User Dependencies
@@ -115,7 +115,22 @@ jobs:
       if: github.event.inputs.target == 'all'
       run: |
         echo "Cleaning up backend resources..."
-        aws s3 rm s3://my-terraform-state-bucket-steven-eks --recursive || true
-        aws s3 rb s3://my-terraform-state-bucket-steven-eks || true
-        aws dynamodb delete-table --table-name terraform-lock --region ${{ env.AWS_REGION }} || true
+        set -euo pipefail
+        TF_BUCKET="${{ secrets.TF_STATE_BUCKET }}"
+        TF_DDB="${{ secrets.TF_DYNAMODB_TABLE }}"
+        if [ -n "$TF_BUCKET" ] && [ "$TF_BUCKET" != "null" ]; then
+          echo "Removing objects from s3://$TF_BUCKET"
+          aws s3 rm s3://$TF_BUCKET --recursive --region ${{ env.AWS_REGION }} || true
+          echo "Removing bucket s3://$TF_BUCKET"
+          aws s3 rb s3://$TF_BUCKET --region ${{ env.AWS_REGION }} || true
+        else
+          echo "TF_STATE_BUCKET not provided; skipping S3 cleanup"
+        fi
+
+        if [ -n "$TF_DDB" ] && [ "$TF_DDB" != "null" ]; then
+          echo "Deleting DynamoDB table $TF_DDB"
+          aws dynamodb delete-table --table-name "$TF_DDB" --region ${{ env.AWS_REGION }} || true
+        else
+          echo "TF_DYNAMODB_TABLE not provided; skipping DynamoDB cleanup"
+        fi
         echo "Backend cleanup completed"
