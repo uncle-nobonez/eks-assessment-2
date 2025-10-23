@@ -35,6 +35,29 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
+    - name: Validate backend secrets
+      run: |
+        TF_STATE_BUCKET='${{ secrets.TF_STATE_BUCKET }}'
+        TF_STATE_KEY='${{ secrets.TF_STATE_KEY }}'
+        TF_DYNAMODB_TABLE='${{ secrets.TF_DYNAMODB_TABLE }}'
+        missing=0
+        if [ -z "$TF_STATE_BUCKET" ] || [ "$TF_STATE_BUCKET" = "null" ]; then
+          echo "ERROR: TF_STATE_BUCKET is not set in repository secrets"
+          missing=1
+        fi
+        if [ -z "$TF_STATE_KEY" ] || [ "$TF_STATE_KEY" = "null" ]; then
+          echo "ERROR: TF_STATE_KEY is not set in repository secrets"
+          missing=1
+        fi
+        if [ -z "$TF_DYNAMODB_TABLE" ] || [ "$TF_DYNAMODB_TABLE" = "null" ]; then
+          echo "ERROR: TF_DYNAMODB_TABLE is not set in repository secrets"
+          missing=1
+        fi
+        if [ "$missing" -eq 1 ]; then
+          echo "Set the required secrets TF_STATE_BUCKET, TF_STATE_KEY and TF_DYNAMODB_TABLE in repository settings"
+          exit 1
+        fi
+
     - name: Terraform Init
       working-directory: terraform/eks/minimal
       run: |
@@ -71,6 +94,29 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
+
+    - name: Validate backend secrets
+      run: |
+        TF_STATE_BUCKET='${{ secrets.TF_STATE_BUCKET }}'
+        TF_STATE_KEY='${{ secrets.TF_STATE_KEY }}'
+        TF_DYNAMODB_TABLE='${{ secrets.TF_DYNAMODB_TABLE }}'
+        missing=0
+        if [ -z "$TF_STATE_BUCKET" ] || [ "$TF_STATE_BUCKET" = "null" ]; then
+          echo "ERROR: TF_STATE_BUCKET is not set in repository secrets"
+          missing=1
+        fi
+        if [ -z "$TF_STATE_KEY" ] || [ "$TF_STATE_KEY" = "null" ]; then
+          echo "ERROR: TF_STATE_KEY is not set in repository secrets"
+          missing=1
+        fi
+        if [ -z "$TF_DYNAMODB_TABLE" ] || [ "$TF_DYNAMODB_TABLE" = "null" ]; then
+          echo "ERROR: TF_DYNAMODB_TABLE is not set in repository secrets"
+          missing=1
+        fi
+        if [ "$missing" -eq 1 ]; then
+          echo "Set the required secrets TF_STATE_BUCKET, TF_STATE_KEY and TF_DYNAMODB_TABLE in repository settings"
+          exit 1
+        fi
 
     - name: Terraform Init
       working-directory: terraform/eks/minimal
