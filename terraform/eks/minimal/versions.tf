@@ -5,7 +5,7 @@ terraform {
   backend "s3" {
     bucket         = "gabriel-eks-state-s3-bucket"
     key            = "terraform.tfstate"
-    region         = "eu-north-1"
+    region         = "us-east-1"
     dynamodb_table = "retail-store-terraform-locks"
     encrypt        = true
   }

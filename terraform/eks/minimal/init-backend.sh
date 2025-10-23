@@ -3,7 +3,7 @@
 echo "🚀 Initializing Terraform Backend"
 echo "=================================="
 
-REGION="eu-north-1"
+REGION="us-east-1"
 ENV_NAME="retail-store"
 
 # Step 1: Initialize without backend to create S3 bucket and DynamoDB table
