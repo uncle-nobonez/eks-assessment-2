@@ -10,7 +10,8 @@ resource "aws_iam_access_key" "eks_readonly_dev" {
 
 # IAM Policy for EKS Read-Only Access
 resource "aws_iam_policy" "eks_readonly" {
-  name        = "${var.environment_name}-eks-readonly"
+  count       = var.existing_iam_policy_arn == "" ? 1 : 0
+  name        = "${var.environment_name}-eks-readonly-${random_id.policy_suffix.hex}"
   description = "Read-only access to EKS cluster"
 
   policy = jsonencode({
@@ -30,9 +31,13 @@ resource "aws_iam_policy" "eks_readonly" {
   })
 }
 
+resource "random_id" "policy_suffix" {
+  byte_length = 2
+}
+
 resource "aws_iam_user_policy_attachment" "eks_readonly_dev" {
   user       = aws_iam_user.eks_readonly_dev.name
-  policy_arn = aws_iam_policy.eks_readonly.arn
+  policy_arn = var.existing_iam_policy_arn != "" ? var.existing_iam_policy_arn : aws_iam_policy.eks_readonly[0].arn
 }
 
 # Kubernetes RBAC for read-only access
