@@ -1,12 +1,13 @@
 terraform {
   backend "s3" {
     bucket         = "my-terraform-state-bucket-steven-eks"
-    key            = "global/s3/terraform.tfstate"
+    key            = "eks/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "terraform-lock-table"
+    dynamodb_table = "terraform-lock"
     encrypt        = true
   }
 }
+
 
 #git commit -m "first commit"
 #git branch -M main
