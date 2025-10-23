@@ -107,6 +107,16 @@ jobs:
         terraform import aws_kms_alias.eks_cluster alias/eks/retail-store 2>/dev/null || echo "KMS alias not found or already imported"
         terraform import aws_cloudwatch_log_group.eks_cluster /aws/eks/retail-store/cluster 2>/dev/null || echo "Log group not found or already imported"
 
+        # --- Import IAM Policy if it exists ---
+        POLICY_ARN=$(aws iam list-policies --scope Local --query "Policies[?PolicyName=='retail-store-eks-readonly'].Arn" --output text)
+        if [ -n "$POLICY_ARN" ]; then
+        echo "✅ Found IAM policy: $POLICY_ARN"
+        terraform import aws_iam_policy.eks_readonly $POLICY_ARN || echo "⚠️ Policy already imported"
+        else
+        echo "❌ IAM policy retail-store-eks-readonly not found — will be created by Terraform"
+        fi
+
+
         echo "Resource import check completed"
 
 
