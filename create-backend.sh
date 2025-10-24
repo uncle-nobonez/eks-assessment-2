@@ -5,8 +5,8 @@
 # =====================================================
 
 # Variables
-BUCKET_NAME="microservices-eks-terraform-state-joy1"
-DYNAMODB_TABLE="microservices-eks-terraform-locks-joy1"
+BUCKET_NAME="my-terraform-state-bucket-steven-eks"
+DYNAMODB_TABLE="terraform-lock"
 AWS_REGION="us-east-1"
 
 echo "🚀 Creating S3 bucket: $BUCKET_NAME ..."

@@ -5,16 +5,16 @@
 echo "Setting up Terraform backend resources..."
 
 # Create S3 bucket for state
-aws s3 mb s3://retail-store-terraform-state --region us-east-1
+aws s3 mb s3://my-terraform-state-bucket-steven-eks --region us-east-1
 
 # Enable versioning
 aws s3api put-bucket-versioning \
-  --bucket retail-store-terraform-state \
+  --bucket my-terraform-state-bucket-steven-eks \
   --versioning-configuration Status=Enabled
 
 # Enable encryption
 aws s3api put-bucket-encryption \
-  --bucket retail-store-terraform-state \
+  --bucket my-terraform-state-bucket-steven-eks \
   --server-side-encryption-configuration '{
     "Rules": [
       {
@@ -27,12 +27,12 @@ aws s3api put-bucket-encryption \
 
 # Create DynamoDB table for locking
 aws dynamodb create-table \
-  --table-name retail-store-terraform-locks \
+  --table-name terraform-lock \
   --attribute-definitions AttributeName=LockID,AttributeType=S \
   --key-schema AttributeName=LockID,KeyType=HASH \
   --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
   --region us-east-1
 
 echo "Backend resources created successfully!"
-echo "S3 Bucket: retail-store-terraform-state"
-echo "DynamoDB Table: retail-store-terraform-locks"
+echo "S3 Bucket: my-terraform-state-bucket-steven-eks"
+echo "DynamoDB Table: terraform-lock"

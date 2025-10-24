@@ -1,6 +1,6 @@
 # Backend resources already exist and are managed outside Terraform
-# S3 bucket: gabriel-eks-state-s3-bucket
-# DynamoDB table: retail-store-terraform-locks
+# S3 bucket: my-terraform-state-bucket-steven-eks
+# DynamoDB table: terraform-lock
 
 # Commented out to avoid conflicts with existing resources
 # resource "aws_s3_bucket" "terraform_state" {
