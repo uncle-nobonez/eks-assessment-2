@@ -9,6 +9,7 @@ module "eks_cluster" {
   cluster_name                   = var.environment_name
   cluster_version                = var.cluster_version
   cluster_endpoint_public_access = true
+  create_cloudwatch_log_group    = false
 
   cluster_addons = {
     vpc-cni = {
