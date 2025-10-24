@@ -157,6 +157,15 @@ jobs:
         # Delete KMS alias
         aws kms delete-alias --alias-name alias/eks/retail-store || true
         
+        # Delete ADOT IAM roles
+        echo "Deleting ADOT IAM roles..."
+        # Detach policies first
+        aws iam list-attached-role-policies --role-name retail-store-adot-col-xray --query 'AttachedPolicies[].PolicyArn' --output text 2>/dev/null | xargs -r -n1 aws iam detach-role-policy --role-name retail-store-adot-col-xray --policy-arn || true
+        aws iam list-attached-role-policies --role-name retail-store-adot-col-logs --query 'AttachedPolicies[].PolicyArn' --output text 2>/dev/null | xargs -r -n1 aws iam detach-role-policy --role-name retail-store-adot-col-logs --policy-arn || true
+        # Delete roles
+        aws iam delete-role --role-name retail-store-adot-col-xray || true
+        aws iam delete-role --role-name retail-store-adot-col-logs || true
+        
         echo "Cleanup completed"
 
     - name: Terraform Apply
