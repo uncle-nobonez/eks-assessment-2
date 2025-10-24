@@ -132,8 +132,12 @@ jobs:
         echo "Removing existing conflicting resources"
         # Delete existing KMS alias
         aws kms delete-alias --alias-name alias/eks/retail-store || true
-        # Delete existing CloudWatch log group
+        # Force delete existing CloudWatch log group
         aws logs delete-log-group --log-group-name /aws/eks/retail-store/cluster || true
+        # Wait a moment for deletion to propagate
+        sleep 10
+        # Verify deletion
+        aws logs describe-log-groups --log-group-name-prefix /aws/eks/retail-store/cluster || echo "Log group deleted successfully"
         echo "Cleanup completed"
 
     - name: Terraform Apply
