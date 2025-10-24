@@ -128,55 +128,11 @@ jobs:
                         -backend-config="encrypt=true"
 
     - name: Handle Existing Resources
-      working-directory: terraform/eks/minimal
+      # run from repository root so the helper script path is stable
       run: |
-        set -euo pipefail
-        echo "Checking for existing resources..."
-
-        # Helper to try import if the resource exists
-        try_import() {
-          local import_cmd="$1"
-          echo "Running: $import_cmd"
-          if ! bash -c "$import_cmd" 2>/dev/null; then
-            echo "Warning: import failed or resource not present: $import_cmd"
-          else
-            echo "Imported: $import_cmd"
-          fi
-        }
-
-        # ADOT roles
-        try_import "terraform import module.retail_app_eks.module.iam_assumable_role_adot_amp.aws_iam_role.this[0] retail-store-adot-col-xray"
-        try_import "terraform import module.retail_app_eks.module.iam_assumable_role_adot_logs.aws_iam_role.this[0] retail-store-adot-col-logs"
-
-        # IAM user (readonly dev)
-        if aws iam get-user --user-name retail-store-eks-readonly-dev >/dev/null 2>&1; then
-          try_import "terraform import aws_iam_user.eks_readonly_dev retail-store-eks-readonly-dev"
-        else
-          echo "IAM user retail-store-eks-readonly-dev not found — Terraform will create it"
-        fi
-
-        # IAM policy (search by name)
-        POLICY_ARN=$(aws iam list-policies --scope Local --query "Policies[?PolicyName=='retail-store-eks-readonly'].Arn" --output text || true)
-        if [ -n "$POLICY_ARN" ] && [ "$POLICY_ARN" != "None" ]; then
-          try_import "terraform import aws_iam_policy.eks_readonly $POLICY_ARN"
-        else
-          echo "IAM policy retail-store-eks-readonly not found — will be created by Terraform"
-        fi
-
-        # KMS alias and CloudWatch log group
-        if aws kms list-aliases --query "Aliases[?contains(AliasName, 'alias/eks/retail-store')]" --output text | grep -q alias/eks/retail-store; then
-          try_import "terraform import aws_kms_alias.eks_cluster alias/eks/retail-store"
-        else
-          echo "KMS alias alias/eks/retail-store not found — Terraform will create it"
-        fi
-
-        if aws logs describe-log-groups --log-group-name-prefix "/aws/eks/retail-store" --query "logGroups[0].logGroupName" --output text | grep -q "/aws/eks/retail-store"; then
-          try_import "terraform import aws_cloudwatch_log_group.eks_cluster /aws/eks/retail-store/cluster"
-        else
-          echo "CloudWatch log group /aws/eks/retail-store/cluster not found — Terraform will create it"
-        fi
-
-        echo "Resource import check completed"
+        echo "Running import helper script to import existing resources into Terraform state"
+        # call the import helper script (use bash to avoid execute-bit issues)
+        bash ./scripts/import-existing-eks-resources.sh terraform/eks/minimal retail-store ${{ env.AWS_REGION }}
 
     - name: Terraform Apply
       working-directory: terraform/eks/minimal
