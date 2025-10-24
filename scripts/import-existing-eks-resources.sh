@@ -69,7 +69,7 @@ try_import() {
     fi
 
     echo "Attempting terraform import '$addr' '$id'"
-    if terraform import "$addr" "$id"; then
+    if terraform import -lock=false "$addr" "$id" >/dev/null 2>&1; then
       echo "Imported $addr -> $id"
       terraform state show "$addr" || true
       return 0
