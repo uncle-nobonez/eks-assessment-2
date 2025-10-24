@@ -1,6 +1,6 @@
 # IAM User for Development Team - Read-Only EKS Access
 resource "aws_iam_user" "eks_readonly_dev" {
-  name = "${var.environment_name}-eks-readonly-dev-joy"
+  name = "${var.environment_name}-eks-readonly-dev-myuncle"
   path = "/"
 }
 
