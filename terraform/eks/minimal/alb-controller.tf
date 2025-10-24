@@ -1,2 +1,2 @@
-# ALB Controller is managed by the EKS module
-# No additional configuration needed here
+// ALB controller module removed per user request.
+// This file intentionally left blank to revert ALB-related changes.
