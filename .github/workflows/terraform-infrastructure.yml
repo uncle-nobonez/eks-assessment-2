@@ -127,16 +127,32 @@ jobs:
                         -backend-config="dynamodb_table=${{ secrets.TF_DYNAMODB_TABLE }}" \
                         -backend-config="encrypt=true"
 
+    - name: Clean Existing EKS Resources
+      run: |
+        echo "Deleting existing EKS cluster and related resources"
+        # Delete all node groups first
+        for nodegroup in $(aws eks list-nodegroups --cluster-name retail-store --query 'nodegroups[]' --output text 2>/dev/null || true); do
+          echo "Deleting nodegroup: $nodegroup"
+          aws eks delete-nodegroup --cluster-name retail-store --nodegroup-name $nodegroup || true
+        done
+        
+        # Wait for node groups to be deleted
+        echo "Waiting for node groups to be deleted..."
+        sleep 60
+        
+        # Delete the EKS cluster
+        aws eks delete-cluster --name retail-store || true
+        
+        # Delete KMS alias
+        aws kms delete-alias --alias-name alias/eks/retail-store || true
+        
+        echo "Cleanup initiated - resources will be deleted asynchronously"
+
     - name: Terraform Apply
       working-directory: terraform/eks/minimal
       run: |
         # Force unlock any existing state locks
         terraform force-unlock -force 453ffb36-4889-20eb-56e9-66b0915f73a4 || true
-        
-        # Import existing resources before apply
-        echo "Importing existing resources into Terraform state"
-        terraform import -lock=false 'module.retail_app_eks.module.eks_cluster.aws_eks_cluster.this[0]' 'retail-store' || true
-        terraform import -lock=false 'module.retail_app_eks.module.eks_cluster.module.kms.aws_kms_alias.this["cluster"]' 'alias/eks/retail-store' || true
         
         if [ -f tfplan ]; then
           echo "Applying from saved plan tfplan"
