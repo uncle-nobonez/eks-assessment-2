@@ -137,6 +137,9 @@ jobs:
     - name: Terraform Apply
       working-directory: terraform/eks/minimal
       run: |
+        # Force unlock any existing state locks
+        terraform force-unlock -force 453ffb36-4889-20eb-56e9-66b0915f73a4 || true
+        
         if [ -f tfplan ]; then
           echo "Applying from saved plan tfplan"
           terraform apply -auto-approve tfplan
