@@ -68,7 +68,7 @@ try_import() {
       return 0
     fi
 
-    echo "Attempting terraform import $addr -> $id"
+    echo "Attempting terraform import $addr $id"
     if terraform import "$addr" "$id" >/dev/null 2>&1; then
       echo "Imported $addr -> $id"
       terraform state show "$addr" || true
@@ -89,6 +89,7 @@ if [ -z "$FOUND_KMS" ] || [ "$FOUND_KMS" = "None" ]; then
   echo "KMS alias '$KMS_ALIAS_NAME' not found in AWS (region $REGION). Skipping KMS import."
 else
   echo "KMS alias found: $FOUND_KMS"
+  echo "Importing KMS alias into Terraform state..."
   # try the module-level address first, then the flattened top-level resource name used elsewhere
   try_import "$KMS_ALIAS_NAME" "$KMS_RESOURCE_ADDR" "aws_kms_alias.eks_cluster"
 fi
@@ -119,24 +120,18 @@ done
 
 FOUND_ROLE_AMP=$(aws iam get-role --role-name "$ADOT_ROLE_NAME_AMP" --query 'Role.RoleName' --output text 2>/dev/null || true)
 if [ -n "$FOUND_ROLE_AMP" ] && [ "$FOUND_ROLE_AMP" != "None" ]; then
-  if state_has "$ADOT_ROLE_ADDR_AMP"; then
-    echo "Terraform state already contains $ADOT_ROLE_ADDR_AMP — skipping import."
-  else
-    echo "Importing ADOT role $ADOT_ROLE_NAME_AMP"
-    terraform import --allow-missing-config "$ADOT_ROLE_ADDR_AMP" "$ADOT_ROLE_NAME_AMP"
-    terraform state show "$ADOT_ROLE_ADDR_AMP" || true
-  fi
+  echo "ADOT role found: $FOUND_ROLE_AMP"
+  try_import "$ADOT_ROLE_NAME_AMP" "$ADOT_ROLE_ADDR_AMP"
+else
+  echo "ADOT role '$ADOT_ROLE_NAME_AMP' not found in AWS. Skipping import."
 fi
 
 FOUND_ROLE_LOGS=$(aws iam get-role --role-name "$ADOT_ROLE_NAME_LOGS" --query 'Role.RoleName' --output text 2>/dev/null || true)
 if [ -n "$FOUND_ROLE_LOGS" ] && [ "$FOUND_ROLE_LOGS" != "None" ]; then
-  if state_has "$ADOT_ROLE_ADDR_LOGS"; then
-    echo "Terraform state already contains $ADOT_ROLE_ADDR_LOGS — skipping import."
-  else
-    echo "Importing ADOT role $ADOT_ROLE_NAME_LOGS"
-    terraform import --allow-missing-config "$ADOT_ROLE_ADDR_LOGS" "$ADOT_ROLE_NAME_LOGS"
-    terraform state show "$ADOT_ROLE_ADDR_LOGS" || true
-  fi
+  echo "ADOT role found: $FOUND_ROLE_LOGS"
+  try_import "$ADOT_ROLE_NAME_LOGS" "$ADOT_ROLE_ADDR_LOGS"
+else
+  echo "ADOT role '$ADOT_ROLE_NAME_LOGS' not found in AWS. Skipping import."
 fi
 
 popd >/dev/null
