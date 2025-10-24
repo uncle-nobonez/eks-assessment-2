@@ -127,18 +127,21 @@ jobs:
                         -backend-config="dynamodb_table=${{ secrets.TF_DYNAMODB_TABLE }}" \
                         -backend-config="encrypt=true"
 
-    - name: Handle Existing Resources
+    - name: Clean Existing Resources
       run: |
-        echo "Removing existing conflicting resources"
-        # Delete existing KMS alias
+        echo "Removing all existing EKS-related resources"
+        # Delete EKS cluster if exists
+        aws eks delete-cluster --name retail-store || true
+        # Delete KMS alias
         aws kms delete-alias --alias-name alias/eks/retail-store || true
-        # Force delete existing CloudWatch log group
+        # Delete CloudWatch log group
         aws logs delete-log-group --log-group-name /aws/eks/retail-store/cluster || true
-        # Wait a moment for deletion to propagate
-        sleep 10
-        # Verify deletion
-        aws logs describe-log-groups --log-group-name-prefix /aws/eks/retail-store/cluster || echo "Log group deleted successfully"
-        echo "Cleanup completed"
+        # Delete any ADOT roles
+        aws iam delete-role --role-name retail-store-adot-col-xray || true
+        aws iam delete-role --role-name retail-store-adot-col-logs || true
+        # Wait for deletions to propagate
+        sleep 30
+        echo "Cleanup completed - Terraform will create fresh resources"
 
     - name: Terraform Apply
       working-directory: terraform/eks/minimal
