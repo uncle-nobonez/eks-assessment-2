@@ -138,20 +138,20 @@ jobs:
         
         # Wait for node groups to be deleted
         echo "Waiting for node groups to be deleted..."
-        sleep 120
+        sleep 60
         
         # Delete the EKS cluster
         aws eks delete-cluster --name retail-store || true
         
         # Wait for cluster deletion to complete
         echo "Waiting for EKS cluster to be deleted..."
-        for i in {1..30}; do
+        for i in {1..15}; do
           if ! aws eks describe-cluster --name retail-store >/dev/null 2>&1; then
             echo "EKS cluster deleted successfully"
             break
           fi
-          echo "Cluster still exists, waiting... (attempt $i/30)"
-          sleep 60
+          echo "Cluster still exists, waiting... (attempt $i/15)"
+          sleep 30
         done
         
         # Delete KMS alias
