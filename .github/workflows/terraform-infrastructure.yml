@@ -138,15 +138,26 @@ jobs:
         
         # Wait for node groups to be deleted
         echo "Waiting for node groups to be deleted..."
-        sleep 60
+        sleep 120
         
         # Delete the EKS cluster
         aws eks delete-cluster --name retail-store || true
         
+        # Wait for cluster deletion to complete
+        echo "Waiting for EKS cluster to be deleted..."
+        for i in {1..20}; do
+          if ! aws eks describe-cluster --name retail-store >/dev/null 2>&1; then
+            echo "EKS cluster deleted successfully"
+            break
+          fi
+          echo "Cluster still exists, waiting... (attempt $i/20)"
+          sleep 30
+        done
+        
         # Delete KMS alias
         aws kms delete-alias --alias-name alias/eks/retail-store || true
         
-        echo "Cleanup initiated - resources will be deleted asynchronously"
+        echo "Cleanup completed"
 
     - name: Terraform Apply
       working-directory: terraform/eks/minimal
