@@ -128,14 +128,13 @@ jobs:
                         -backend-config="encrypt=true"
 
     - name: Handle Existing Resources
-      working-directory: terraform/eks/minimal
       run: |
-        echo "Running import helper script to import existing resources into Terraform state"
-        # Import KMS alias
-        terraform import -lock=false 'module.retail_app_eks.module.eks_cluster.module.kms.aws_kms_alias.this["cluster"]' 'alias/eks/retail-store' || true
-        # Import CloudWatch log group
-        terraform import -lock=false 'module.retail_app_eks.module.eks_cluster.aws_cloudwatch_log_group.this[0]' '/aws/eks/retail-store/cluster' || true
-        echo "Import attempts completed"
+        echo "Removing existing conflicting resources"
+        # Delete existing KMS alias
+        aws kms delete-alias --alias-name alias/eks/retail-store || true
+        # Delete existing CloudWatch log group
+        aws logs delete-log-group --log-group-name /aws/eks/retail-store/cluster || true
+        echo "Cleanup completed"
 
     - name: Terraform Apply
       working-directory: terraform/eks/minimal
